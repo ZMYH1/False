@@ -1,14 +1,8 @@
 # False
 A free mixin-based injection hacked-client for Minecraft using Minecraft Forge.
 
-Website: https://liquidbounce.net \
-Forum: https://forum.ccbluex.net/index.php \
-Discord: https://discord.gg/gdQ82He \
-YouTube: https://youtube.com/CCBlueX \
-Twitter: https://twitter.com/CCBlueX 
-
 ## Issues
-If you notice any bugs or missing features, you can let us know by opening an issue [here](https://github.com/CCBlueX/LiquidBounce1.8-Issues/issues).
+If you notice any bugs or missing features, you can let us know by opening an issue [here](https://github.com/StaffMc/False/issues).
 
 ## License
 This project is subject to the [GNU General Public License v3.0](LICENSE). This does only apply for source code located directly in this clean repository. During the development and compilation process, additional source code may be used to which we have obtained no rights. Such code is not covered by the GPL license.
@@ -29,7 +23,7 @@ Do the above and share your source code with everyone; just like we do.
 
 ## Setting up a Workspace
 LiquidBounce is using Gradle, so make sure that it is installed properly. Instructions can be found on [Gradle's website](https://gradle.org/install/).
-1. Clone the repository using `git clone https://github.com/CCBlueX/LiquidBounce`. 
+1. Clone the repository using `git clone https://github.com/StaffMc/False`. 
 2. CD into the local repository folder.
 3. Depending on which IDE you are using execute either of the following commands:
     - For IntelliJ: `gradlew --debug setupDevWorkspace idea genIntellijRuns build`
@@ -43,8 +37,8 @@ Mixins can be used to modify classes at runtime before they are loaded. LiquidBo
 
 ## Contributing
 
-We appreciate contributions. So if you want to support us, feel free to make changes to LiquidBounce's source code and submit a pull request. Currently, our main goals are the following:
-1. Improve LiquidBounce's performance.
+We appreciate contributions. So if you want to support us, feel free to make changes to False's source code and submit a pull request. Currently, our main goals are the following:
+1. Improve False's performance.
 2. Re-work most of the render code.
 
 If you have experience in one or more of these fields, we would highly appreciate your support.
