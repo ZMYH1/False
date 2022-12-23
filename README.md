@@ -1,5 +1,5 @@
 # False
-A free mixin-based injection hacked-client for Minecraft using Minecraft Forge.
+A Liquidbounce custom build.
 
 ## Issues
 If you notice any bugs or missing features, you can let us know by opening an issue [here](https://github.com/StaffMc/False/issues).
