@@ -58,6 +58,13 @@ public class Fonts {
     @FontDetails(fontName = "Tenacity")
     public static GameFontRenderer tenacity2;
 
+    @FontDetails(fontName = "Roboto Sfui", fontSize = 35)
+    public static GameFontRenderer Sfui35;
+
+    @FontDetails(fontName = "Roboto Sfui", fontSize = 24)
+    public static GameFontRenderer Sfui24;
+
+
     private static final List<GameFontRenderer> CUSTOM_FONT_RENDERERS = new ArrayList<>();
 
     public static void loadFonts() {
@@ -77,6 +84,8 @@ public class Fonts {
         comfortable2 = new GameFontRenderer(getFont("wqy_microhei.ttf",40));
         tenacity1 = new GameFontRenderer(getFont("tenacitybold.ttf",35));
         tenacity2 = new GameFontRenderer(getFont("tenacitybold.ttf",40));
+        Sfui35 = new GameFontRenderer(getFont("Roboto-Sfui.ttf", 35));
+        Sfui24 = new GameFontRenderer(getFont("Roboto-Sfui.ttf", 24));
 
 
         try {
