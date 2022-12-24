@@ -54,6 +54,7 @@ class ModuleManager : Listenable {
                 ClickGUI::class.java,
                 HighJump::class.java,
                 InventoryMove::class.java,
+                SpeedMine::class.java,
                 NoSlow::class.java,
                 LiquidWalk::class.java,
                 SafeWalk::class.java,
