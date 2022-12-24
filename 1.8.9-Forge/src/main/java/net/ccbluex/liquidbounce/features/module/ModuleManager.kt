@@ -66,6 +66,7 @@ class ModuleManager : Listenable {
                 AntiBot::class.java,
                 ChestStealer::class.java,
                 Scaffold::class.java,
+                RemoveMatrixBot::class.java,
                 CivBreak::class.java,
                 Tower::class.java,
                 FastBreak::class.java,
