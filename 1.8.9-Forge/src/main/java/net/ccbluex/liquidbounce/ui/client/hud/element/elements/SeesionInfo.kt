@@ -5,6 +5,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.Border
 import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.SeesionInfoUtils
 import net.ccbluex.liquidbounce.utils.SessionUtils
 import net.ccbluex.liquidbounce.utils.StatisticsUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
@@ -24,10 +25,8 @@ class SessionInfo(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F): Elemen
     private val nameText = "Player:"+mc.thePlayer.name
     private val decimalFormat = DecimalFormat("##0.0", DecimalFormatSymbols(Locale.ENGLISH))
     private val DATE_FORMAT = SimpleDateFormat("HH:mm:ss")
-    private val timeText = "Play Time: ${DATE_FORMAT.format(Date(System.currentTimeMillis() - SessionUtils.lastWorldTime - 8000L * 3600L))}"
     private val healthText = "Health:"+decimalFormat.format(mc.thePlayer.health)
-    private val killText = "Kills:"+StatisticsUtils.getKills()
-
+    private val killText = "Kills:"+ SeesionInfoUtils.killCounts
     /**
      * Draw element
      */
@@ -44,7 +43,8 @@ class SessionInfo(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F): Elemen
                 RenderUtils.drawRect(0f,0f,130f,4f + fontheight * 5, Color(0, 0, 0, 120).rgb)
                 fontRenderer.get().drawString("SessionInfo", 2, 3,Color(255, 255, 255).rgb)
                 fontRenderer.get().drawString(nameText, 2, 5 + fontheight,Color(255, 255, 255).rgb)
-                fontRenderer.get().drawString(timeText, 2, 5 + fontheight * 2,Color(255, 255, 255).rgb)
+                fontRenderer.get().drawString("Play Time: ${DATE_FORMAT.format(Date(System.currentTimeMillis() - SeesionInfoUtils.startTime - 8000L * 3600L))}"
+                    , 2, 5 + fontheight * 2,Color(255, 255, 255).rgb)
                 fontRenderer.get().drawString(healthText, 2, 5 + fontheight * 3,Color(255, 255, 255).rgb)
                 fontRenderer.get().drawString(killText, 2, 5 + fontheight * 4,Color(255, 255, 255).rgb)
             }
@@ -60,7 +60,8 @@ class SessionInfo(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F): Elemen
                 RenderUtils.drawRect(0f,0f,130f,4f + fontheight * 5, Color(0, 0, 0, 60).rgb)
                 fontRenderer.get().drawString("SessionInfo", 2, 3,Color(255, 255, 255).rgb)
                 fontRenderer.get().drawString(nameText, 2, 5 + fontheight,Color(255, 255, 255).rgb)
-                fontRenderer.get().drawString(timeText, 2, 5 + fontheight * 2,Color(255, 255, 255).rgb)
+                fontRenderer.get().drawString("Play Time: ${DATE_FORMAT.format(Date(System.currentTimeMillis() - SeesionInfoUtils.startTime - 8000L * 3600L))}"
+                    , 2, 5 + fontheight * 2,Color(255, 255, 255).rgb)
                 fontRenderer.get().drawString(healthText, 2, 5 + fontheight * 3,Color(255, 255, 255).rgb)
                 fontRenderer.get().drawString(killText, 2, 5 + fontheight * 4,Color(255, 255, 255).rgb)
             }
