@@ -27,6 +27,9 @@ import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.particle.EffectRenderer;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemSnow;
+import net.minecraft.item.ItemSnowball;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Util;
@@ -194,7 +197,13 @@ public abstract class MixinMinecraft {
 
         if (fastPlace.getState())
             rightClickDelayTimer = fastPlace.getSpeedValue().get();
+
+        if (fastPlace.getOnlyblock().get() && this.thePlayer.getHeldItem() == null && this.thePlayer.getHeldItem().getItem() instanceof ItemSnowball)
+            rightClickDelayTimer = CPSCounter.MouseButton.RIGHT.ordinal();
     }
+
+
+
 
     @Inject(method = "loadWorld(Lnet/minecraft/client/multiplayer/WorldClient;Ljava/lang/String;)V", at = @At("HEAD"))
     private void loadWorld(WorldClient p_loadWorld_1_, String p_loadWorld_2_, final CallbackInfo callbackInfo) {
