@@ -32,7 +32,7 @@ import java.util.*
 @ModuleInfo(name = "NoSlow", description = "Cancels slowness effects caused by soulsand and using items.",
         category = ModuleCategory.MOVEMENT)
 class NoSlow : Module() {
-    private val modeValue = ListValue("PacketMode", arrayOf("Vanilla", "LiquidBounce", "Custom",
+    private val modeValue = ListValue("PacketMode", arrayOf("Vanilla", "LiquidBounce", "Custom","Hypixel",
         "WatchDog", "Watchdog2", "NCP",
         "AAC(1)", "AAC(2)" ,"AAC4",
         "AAC5", "OldHypixel", "Blink","Hypixel20221112","Matrix"), "Vanilla")
@@ -132,6 +132,12 @@ class NoSlow : Module() {
                     }else{
                         sendPacket(event, sendC07 = false, sendC08 = true, delay = false, delayValue = 0, onGround = true, watchDog = true)
                     }
+                }
+                "hypixel" -> {
+                    if (event.eventState == EventState.PRE)
+                        mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos(-1, -1, -1), EnumFacing.DOWN))
+                    else
+                        mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, null, 0.0f, 0.0f, 0.0f))
                 }
 
                 "aac(1)" -> {
