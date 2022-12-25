@@ -198,7 +198,7 @@ public abstract class MixinMinecraft {
         if (fastPlace.getState())
             rightClickDelayTimer = fastPlace.getSpeedValue().get();
 
-        if (fastPlace.getOnlyblock().get() && this.thePlayer.getHeldItem() == null && this.thePlayer.getHeldItem().getItem() instanceof ItemSnowball)
+        if (fastPlace.getOnlyblock().get() && this.thePlayer.getHeldItem().getItem() instanceof ItemBlock)
             rightClickDelayTimer = CPSCounter.MouseButton.RIGHT.ordinal();
     }
 
