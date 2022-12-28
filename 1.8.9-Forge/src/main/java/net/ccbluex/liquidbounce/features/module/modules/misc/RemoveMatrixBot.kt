@@ -36,7 +36,7 @@ class RemoveMatrixBot : Module(){
                     if (!wasAdded) wasAdded =
                         data.profile.name == mc.thePlayer.name else if (!mc.thePlayer.isSpectator && !mc.thePlayer.capabilities.allowFlying && (!czechHekPingCheckValue.get() || data.ping != 0) && (!czechHekGMCheckValue.get() || data.gameMode != WorldSettings.GameType.NOT_SET)) {
                         event.cancelEvent()
-                        if (debugValue.get()) ClientUtils.displayChatMessage("§7[§a§lRemove MatrixBot§7] §fRemove§r" + data.profile.name)
+                        if (debugValue.get()) ClientUtils.displayChatMessage("§7[§a§lRemove MatrixBot§7] §fRemove§r -> " + data.profile.name)
                     }
                 }
             }
