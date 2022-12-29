@@ -35,7 +35,7 @@ class NoSlow : Module() {
     private val modeValue = ListValue("PacketMode", arrayOf("Vanilla", "LiquidBounce", "Custom","Hypixel",
         "WatchDog", "Watchdog2", "NCP",
         "AAC(1)", "AAC(2)" ,"AAC4",
-        "AAC5", "OldHypixel", "Blink","Hypixel20221112","Matrix"), "Vanilla")
+        "AAC5", "OldHypixel", "Blink","Hypixel20221112","Matrix","ZQAT"), "Vanilla")
 
     private val blockForwardMultiplier = FloatValue("BlockForwardMultiplier", 1.0F, 0.2F, 1.0F)
     private val blockStrafeMultiplier = FloatValue("BlockStrafeMultiplier", 1.0F, 0.2F, 1.0F)
@@ -226,6 +226,28 @@ class NoSlow : Module() {
                         )
                     }
                 }
+                "zqat" -> {
+                    if (mc.thePlayer.ticksExisted % 2 == 0) {
+                        sendPacket(
+                            event,
+                            sendC07 = true,
+                            sendC08 = false,
+                            delay = true,
+                            delayValue = 50,
+                            onGround = true
+                        )
+                    } else {
+                        sendPacket(
+                            event,
+                            sendC07 = false,
+                            sendC08 = true,
+                            delay = false,
+                            delayValue = 0,
+                            onGround = true,
+                            watchDog = true
+                        )
+                    }
+                }
 
                 "oldhypixel" -> {
                     if (event.eventState == EventState.PRE)
@@ -289,6 +311,12 @@ class NoSlow : Module() {
             event.cancelEvent()
             if (debugValue.get())
                 ClientUtils.displayChatMessage("detected reset item packet")
+        }
+
+        if (modeValue.get().equals("zqat", true) && packet is S30PacketWindowItems && (mc.thePlayer.isUsingItem || mc.thePlayer.isBlocking)) {
+            event.cancelEvent()
+            if (debugValue.get())
+                ClientUtils.displayChatMessage("zqat noslow")
         }
 
         if(modeValue.equals("Matrix") && nextTemp) {
