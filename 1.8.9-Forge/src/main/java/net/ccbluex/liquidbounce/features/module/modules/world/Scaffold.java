@@ -28,6 +28,7 @@ import net.ccbluex.liquidbounce.value.ListValue;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
@@ -133,7 +134,7 @@ public class Scaffold extends Module {
     private final BoolValue airSafeValue = new BoolValue("AirSafe", false);
 
     // Visuals
-    private final ListValue counterDisplayValue = new ListValue("Counter", new String[] {"Liquidbounce","String","Exhi"},"String");
+    private final ListValue counterDisplayValue = new ListValue("Counter", new String[] {"Liquidbounce","String","Exhi","Off"},"String");
     private final BoolValue markValue = new BoolValue("Mark", false);
     private final BoolValue debug = new BoolValue("Debug",true);
 
@@ -560,8 +561,25 @@ public class Scaffold extends Module {
 
             GlStateManager.popMatrix();
         }
-
     }
+
+    //检测手上的方块是什么
+    private void renderItemStack(ItemStack stack, int x, int y) {
+        GlStateManager.pushMatrix();
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        RenderHelper.enableGUIStandardItemLighting();
+        mc.getRenderItem().renderItemAndEffectIntoGUI(stack, x, y);
+        mc.getRenderItem().renderItemOverlays(mc.fontRendererObj, stack, x, y);
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
+    }
+
+
+
 
     /**
      * Scaffold visuals
