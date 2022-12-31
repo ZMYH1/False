@@ -18,6 +18,8 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.speeds.spartan.
 import net.ccbluex.liquidbounce.features.module.modules.movement.speeds.spectre.SpectreBHop;
 import net.ccbluex.liquidbounce.features.module.modules.movement.speeds.spectre.SpectreLowHop;
 import net.ccbluex.liquidbounce.features.module.modules.movement.speeds.spectre.SpectreOnGround;
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.NotifyType;
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.NotyIcon;
 import net.ccbluex.liquidbounce.utils.MovementUtils;
 import net.ccbluex.liquidbounce.utils.PacketUtils;
 import net.ccbluex.liquidbounce.value.BoolValue;
@@ -28,7 +30,7 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.INetHandlerPlayServer;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
-
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +48,7 @@ public class Speed extends Module {
             new YPort2(),
             new NCPYPort(),
             new HypixelFast(),
+            new Hypixel2(),
 //            new Boost(),
 //            new Frame(),
 //            new MiJump(),
