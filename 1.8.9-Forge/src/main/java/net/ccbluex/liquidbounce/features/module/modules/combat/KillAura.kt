@@ -13,12 +13,16 @@ import net.ccbluex.liquidbounce.features.module.ModuleInfo
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
 import net.ccbluex.liquidbounce.features.module.modules.misc.Teams
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink
+import net.ccbluex.liquidbounce.features.module.modules.render.ClickGUI
 import net.ccbluex.liquidbounce.features.module.modules.render.FreeCam
+import net.ccbluex.liquidbounce.features.module.modules.render.HUD
 import net.ccbluex.liquidbounce.utils.EntityUtils
 import net.ccbluex.liquidbounce.utils.RaycastUtils
+import net.ccbluex.liquidbounce.utils.Rotation
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils
+import net.ccbluex.liquidbounce.utils.render.EaseUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.timer.MSTimer
 import net.ccbluex.liquidbounce.utils.timer.TimeUtils
@@ -41,12 +45,16 @@ import net.minecraft.potion.Potion
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MathHelper
+import net.minecraft.util.Vec3
 import net.minecraft.world.WorldSettings
 import org.lwjgl.input.Keyboard
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.util.*
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sin
 
 @ModuleInfo(name = "KillAura", description = "Automatically attacks targets around you.",
         category = ModuleCategory.COMBAT, keyBind = Keyboard.KEY_R)
@@ -83,7 +91,7 @@ class KillAura : Module() {
     private val rangeSprintReducementValue = FloatValue("RangeSprintReducement", 0f, 0f, 0.4f)
 
     // Modes
-    public val priorityValue = ListValue("Priority", arrayOf("Health", "Distance", "Direction", "LivingTime"), "Distance")
+    private val priorityValue = ListValue("Priority", arrayOf("Health", "Distance", "Direction", "LivingTime"), "Distance")
     private val targetModeValue = ListValue("TargetMode", arrayOf("Single", "Switch", "Multi"), "Switch")
 
     // Bypass
@@ -91,7 +99,8 @@ class KillAura : Module() {
     private val keepSprintValue = BoolValue("KeepSprint", true)
 
     // AutoBlock
-    val autoBlockValue = ListValue("AutoBlock", arrayOf("Off", "Packet", "AfterTick", "Legit - AAC","Fake","Test","VanillaAutoBlock"), "Packet")
+    private val autoBlockValue = ListValue("AutoBlock", arrayOf("Off", "Packet", "AfterTick" ,"NewVanilla","Hypixel","VanillaAutoBlock","NCP"), "Packet")
+    private val blockRate = IntegerValue("BlockRate", 100, 1, 100)
     private val interactAutoBlockValue = BoolValue("InteractAutoBlock", true)
 
     // Raycast
@@ -117,8 +126,8 @@ class KillAura : Module() {
         }
     }
 
+    private val rotationMode = ListValue("Rotation", arrayOf("Liquidbounce","Dev"),"Liquidbounce")
     private val silentRotationValue = BoolValue("SilentRotation", true)
-    private val lockHead = BoolValue("LockHead",false)
     private val rotationStrafeValue = ListValue("Strafe", arrayOf("Off", "Strict", "Silent"), "Off")
     private val randomCenterValue = BoolValue("RandomCenter", true)
     private val outborderValue = BoolValue("Outborder", false)
@@ -149,7 +158,7 @@ class KillAura : Module() {
     private val limitedMultiTargetsValue = IntegerValue("LimitedMultiTargets", 0, 0, 50)
 
     // Visuals
-    private val markValue = BoolValue("Mark", true)
+    private val markValue = ListValue("Mark", arrayOf("Liquidbounce","Novoline"),"Novoline")
     private val fakeSharpValue = BoolValue("FakeSharp", true)
 
     /**
@@ -157,9 +166,6 @@ class KillAura : Module() {
      */
 
     // Target
-    private val inRangeDiscoveredTargets = mutableListOf<EntityLivingBase>()
-    val canFakeBlock: Boolean
-        get() = inRangeDiscoveredTargets.isNotEmpty()
     var target: EntityLivingBase? = null
     private var currentTarget: EntityLivingBase? = null
     private var hitable = false
@@ -382,8 +388,64 @@ class KillAura : Module() {
 
         target ?: return
 
-        if (markValue.get() && !targetModeValue.get().equals("Multi", ignoreCase = true))
+        if (markValue.get() == "Liquidbounce" && !targetModeValue.get().equals("Multi", ignoreCase = true))
             RenderUtils.drawPlatform(target, if (hitable) Color(37, 126, 255, 70) else Color(255, 0, 0, 70))
+
+        if (markValue.get() == "Novoline" && !targetModeValue.get().equals("Multi", ignoreCase = true)){
+            val everyTime = 3000
+            val drawTime = (System.currentTimeMillis() % everyTime).toInt()
+            val drawMode = drawTime > (everyTime/2)
+            var drawPercent = drawTime / (everyTime/2.0)
+            // true when goes up
+            if (!drawMode) {
+                drawPercent = 1 - drawPercent
+            } else {
+                drawPercent -= 1
+            }
+            drawPercent = EaseUtils.easeInOutQuad(drawPercent)
+            mc.entityRenderer.disableLightmap()
+            GL11.glPushMatrix()
+            GL11.glDisable(GL11.GL_TEXTURE_2D)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+            GL11.glEnable(GL11.GL_LINE_SMOOTH)
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            GL11.glDisable(GL11.GL_CULL_FACE)
+            GL11.glShadeModel(7425)
+            mc.entityRenderer.disableLightmap()
+
+            val it = (LiquidBounce.moduleManager[KillAura::class.java] as KillAura).target
+            val bb = it!!.entityBoundingBox
+            val radius = ((bb.maxX - bb.minX) + (bb.maxZ - bb.minZ)) * 0.5f
+            val height = bb.maxY - bb.minY
+            val x = it!!.lastTickPosX + (it!!.posX - it!!.lastTickPosX) * event.partialTicks - mc.renderManager.viewerPosX
+            val y = (it!!.lastTickPosY + (it!!.posY - it!!.lastTickPosY) * event.partialTicks - mc.renderManager.viewerPosY) + height * drawPercent
+            val z = it.lastTickPosZ + (it.posZ - it.lastTickPosZ) * event.partialTicks - mc.renderManager.viewerPosZ
+            val eased = (height / 3) * (if (drawPercent > 0.5) { 1 - drawPercent } else { drawPercent }) * (if (drawMode) { -1 } else { 1 })
+            for (i in 5..360 step 5) {
+                val x1 = x - sin(i * Math.PI / 180F) * radius
+                val z1 = z + cos(i * Math.PI / 180F) * radius
+                val x2 = x - sin((i - 5) * Math.PI / 180F) * radius
+                val z2 = z + cos((i - 5) * Math.PI / 180F) * radius
+                GL11.glBegin(GL11.GL_QUADS)
+                RenderUtils.glColor(ClickGUI.colorRedValue.get(),ClickGUI.colorGreenValue.get(),ClickGUI.colorBlueValue.get(),30)
+                GL11.glVertex3d(x1, y + eased, z1)
+                GL11.glVertex3d(x2, y + eased, z2)
+                RenderUtils.glColor(ClickGUI.colorRedValue.get(),ClickGUI.colorGreenValue.get(),ClickGUI.colorBlueValue.get(),120)
+                GL11.glVertex3d(x2, y, z2)
+                GL11.glVertex3d(x1, y, z1)
+                GL11.glEnd()
+            }
+
+            GL11.glEnable(GL11.GL_CULL_FACE)
+            GL11.glShadeModel(7424)
+            GL11.glColor4f(1f, 1f, 1f, 1f)
+            GL11.glEnable(GL11.GL_DEPTH_TEST)
+            GL11.glDisable(GL11.GL_LINE_SMOOTH)
+            GL11.glDisable(GL11.GL_BLEND)
+            GL11.glEnable(GL11.GL_TEXTURE_2D)
+            GL11.glPopMatrix()
+        }
 
         if (currentTarget != null && attackTimer.hasTimePassed(attackDelay) &&
                 currentTarget!!.hurtTime <= hurtTimeValue.get()) {
@@ -544,8 +606,14 @@ class KillAura : Module() {
      */
     private fun attackEntity(entity: EntityLivingBase) {
         // Stop blocking
-        if (mc.thePlayer.isBlocking || blockingStatus) {
-            mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+        if (!autoBlockValue.equals("NewVanilla") && (mc.thePlayer.isBlocking || blockingStatus)) {
+            mc.netHandler.addToSendQueue(
+                C07PacketPlayerDigging(
+                    C07PacketPlayerDigging.Action.RELEASE_USE_ITEM,
+                    BlockPos.ORIGIN,
+                    EnumFacing.DOWN
+                )
+            )
             blockingStatus = false
         }
 
@@ -560,7 +628,8 @@ class KillAura : Module() {
         if (keepSprintValue.get()) {
             // Critical Effect
             if (mc.thePlayer.fallDistance > 0F && !mc.thePlayer.onGround && !mc.thePlayer.isOnLadder &&
-                    !mc.thePlayer.isInWater && !mc.thePlayer.isPotionActive(Potion.blindness) && !mc.thePlayer.isRiding)
+                !mc.thePlayer.isInWater && !mc.thePlayer.isPotionActive(Potion.blindness) && !mc.thePlayer.isRiding
+            )
                 mc.thePlayer.onCriticalHit(entity)
 
             // Enchant Effect
@@ -576,11 +645,20 @@ class KillAura : Module() {
 
         for (i in 0..2) {
             // Critical Effect
-            if (mc.thePlayer.fallDistance > 0F && !mc.thePlayer.onGround && !mc.thePlayer.isOnLadder && !mc.thePlayer.isInWater && !mc.thePlayer.isPotionActive(Potion.blindness) && mc.thePlayer.ridingEntity == null || criticals.state && criticals.msTimer.hasTimePassed(criticals.delayValue.get().toLong()) && !mc.thePlayer.isInWater && !mc.thePlayer.isInLava && !mc.thePlayer.isInWeb)
+            if (mc.thePlayer.fallDistance > 0F && !mc.thePlayer.onGround && !mc.thePlayer.isOnLadder && !mc.thePlayer.isInWater && !mc.thePlayer.isPotionActive(
+                    Potion.blindness
+                ) && mc.thePlayer.ridingEntity == null || criticals.state && criticals.msTimer.hasTimePassed(
+                    criticals.delayValue.get().toLong()
+                ) && !mc.thePlayer.isInWater && !mc.thePlayer.isInLava && !mc.thePlayer.isInWeb
+            )
                 mc.thePlayer.onCriticalHit(target)
 
             // Enchant Effect
-            if (EnchantmentHelper.getModifierForCreature(mc.thePlayer.heldItem, target!!.creatureAttribute) > 0.0f || fakeSharpValue.get())
+            if (EnchantmentHelper.getModifierForCreature(
+                    mc.thePlayer.heldItem,
+                    target!!.creatureAttribute
+                ) > 0.0f || fakeSharpValue.get()
+            )
                 mc.thePlayer.onEnchantmentCritical(target)
         }
 
@@ -588,18 +666,32 @@ class KillAura : Module() {
         if (autoBlockValue.get().equals("Packet", true) && (mc.thePlayer.isBlocking || canBlock))
             startBlocking(entity, interactAutoBlockValue.get())
 
-        if (autoBlockValue.get().equals("Legit - AAC",true) && canBlock) {
-            startBlocking(entity, true)
-//            mc.netHandler.addToSendQueue(C02PacketUseEntity(entity, C02PacketUseEntity.Action.INTERACT))
-        }
-        if (autoBlockValue.get().equals("Test",true) && canBlock) {
+        if (autoBlockValue.get().equals("Packet", true) && (mc.thePlayer.isBlocking || canBlock))
+            startBlocking(entity, interactAutoBlockValue.get())
+
+        if (autoBlockValue.get().equals("Test", true) && canBlock) {
             startBlocking(entity, true)
             mc.netHandler.addToSendQueue(C02PacketUseEntity(entity, C02PacketUseEntity.Action.INTERACT))
         }
-        if (autoBlockValue.get().equals("VanillaAutoBlock",true) && canBlock) {
+        if (autoBlockValue.get().equals("VanillaAutoBlock", true) && canBlock) {
             blockingStatus = true
         }
+
+        if (autoBlockValue.get().equals("Hypixel", true)) {
+            if (mc.thePlayer.swingProgressInt == 1) {
+                mc.netHandler.addToSendQueue(
+                    C07PacketPlayerDigging(
+                        C07PacketPlayerDigging.Action.RELEASE_USE_ITEM,
+                        BlockPos.ORIGIN,
+                        EnumFacing.DOWN
+                    )
+                )
+            } else if (mc.thePlayer.swingProgressInt == 2) {
+                mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()))
+            }
+        }
     }
+
 
     /**
      * Update killaura rotations to enemy
@@ -633,7 +725,7 @@ class KillAura : Module() {
 
         if (silentRotationValue.get())
             RotationUtils.setTargetRotation(
-                if (lockHead.get())
+                if (rotationMode.get() == "Dev")
                 lockhead
             else
                 limitedRotation, if (aacValue.get()) 15 else 0)
@@ -673,13 +765,43 @@ class KillAura : Module() {
     /**
      * Start blocking
      */
+
     private fun startBlocking(interactEntity: Entity, interact: Boolean) {
+        if (!(blockRate.get() > 0 && Random().nextInt(100) <= blockRate.get()))
+            return
+
+        if (autoBlockValue.get().equals("NCP", true)) {
+            mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, null, 0.0f, 0.0f, 0.0f))
+            blockingStatus = true
+            return
+        }
+
         if (interact) {
-            mc.netHandler.addToSendQueue(C02PacketUseEntity(interactEntity, interactEntity.positionVector))
+            val positionEye = mc.renderViewEntity?.getPositionEyes(1F)
+
+            val expandSize = interactEntity.collisionBorderSize.toDouble()
+            val boundingBox = interactEntity.entityBoundingBox.expand(expandSize, expandSize, expandSize)
+
+            val (yaw, pitch) = RotationUtils.targetRotation ?: Rotation(mc.thePlayer!!.rotationYaw, mc.thePlayer!!.rotationPitch)
+            val yawCos = cos(-yaw * 0.017453292F - Math.PI.toFloat())
+            val yawSin = sin(-yaw * 0.017453292F - Math.PI.toFloat())
+            val pitchCos = -cos(-pitch * 0.017453292F)
+            val pitchSin = sin(-pitch * 0.017453292F)
+            val range = min(maxRange.toDouble(), mc.thePlayer!!.getDistanceToEntityBox(interactEntity)) + 1
+            val lookAt = positionEye!!.addVector(yawSin * pitchCos * range, pitchSin * range, yawCos * pitchCos * range)
+
+            val movingObject = boundingBox.calculateIntercept(positionEye, lookAt) ?: return
+            val hitVec = movingObject.hitVec
+
+            mc.netHandler.addToSendQueue(C02PacketUseEntity(interactEntity, Vec3(
+                hitVec.xCoord - interactEntity.posX,
+                hitVec.yCoord - interactEntity.posY,
+                hitVec.zCoord - interactEntity.posZ)
+            ))
             mc.netHandler.addToSendQueue(C02PacketUseEntity(interactEntity, C02PacketUseEntity.Action.INTERACT))
         }
 
-        mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
+        mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, mc.thePlayer!!.inventory.getCurrentItem(), 0.0F, 0.0F, 0.0F))
         blockingStatus = true
     }
 
