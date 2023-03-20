@@ -33,7 +33,7 @@ import java.util.*
         category = ModuleCategory.MOVEMENT)
 class NoSlow : Module() {
     private val modeValue = ListValue("PacketMode", arrayOf("Vanilla", "LiquidBounce", "Custom","Hypixel",
-        "WatchDog", "Watchdog2", "NCP",
+        "WatchDog", "Watchdog2","Watchdog3", "NCP"
         "AAC(1)", "AAC(2)" ,"AAC4",
         "AAC5", "OldHypixel", "Blink","Hypixel20221112","Matrix","ZQAT"), "Vanilla")
 
@@ -91,14 +91,14 @@ class NoSlow : Module() {
         nextTemp = false
         waitC03 = false
     }
-
+    private boolean synced;
     @EventTarget
     fun onMotion(event: MotionEvent) {
         val heldItem = mc.thePlayer.heldItem
         if (heldItem == null || heldItem.item !is ItemSword || !MovementUtils.isMoving()) {
             return
         }
-
+        
         if (alertTimer.hasTimePassed(10000) && debugValue.get() && (modeValue.equals("Matrix") || modeValue.equals("Vulcan"))) {
             alertTimer.reset()
             ClientUtils.displayChatMessage("§8[§c§lNoSlow§8]§aPlease notice that Vulcan/Matrix NoSlow §cDO NOT §asupport FakeLag Disabler!")
@@ -116,7 +116,30 @@ class NoSlow : Module() {
             }
             return
         }
+        //ZMYH Update WatchDog3 NoSlow
+        if(modeValue.get().toLowerCase() == "watchdog3") {
+            if (event.eventState == EventState.PRE) {    
+                if (mc.thePlayer.onGround && mc.thePlayer.isUsingItem() && MoveUtil.isMoving()) {
+                mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                synced = true;
+            }
+            if (!synced) {
+                mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                synced = true;
+            }
+            }else{
+            if (mc.thePlayer.onGround && mc.thePlayer.isUsingItem() && MoveUtil.isMoving()) {
 
+                mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem < 8 ? mc.thePlayer.inventory.currentItem + 1 : mc.thePlayer.inventory.currentItem - 1));
+                synced = false;
+
+            }
+            if (!synced) {
+                mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                synced = true;
+            }
+            }
+        }
         if (modeValue.get().toLowerCase() != "aac5") {
             if (!mc.thePlayer!!.isBlocking && !killAura.blockingStatus) {
                 return
